@@ -6,29 +6,32 @@ import 'map_screen.dart';
 import 'settings_screen.dart';
 
 class TripListScreen extends StatefulWidget {
-  const TripListScreen({super.key});
+  final List<Trip> initialTrips;
+
+  // Основной конструктор
+  const TripListScreen({super.key, List<Trip>? initialTrips})
+      : initialTrips = initialTrips ?? const [];
 
   @override
   State<TripListScreen> createState() => _TripListScreenState();
 }
 
 class _TripListScreenState extends State<TripListScreen> {
-  List<Trip> trips = [
-    Trip(id: '1', title: 'Отдых в Сочи', description: 'Поездка на море'),
-    Trip(id: '2', title: 'Поход в горы', description: 'Восхождение на Эльбрус'),
-  ];
+  late List<Trip> trips;
+
+  @override
+  void initState() {
+    super.initState();
+    // Инициализируем trips из initialTrips или начальными данными
+    trips = widget.initialTrips.isNotEmpty
+        ? List.from(widget.initialTrips)
+        : [
+      Trip(id: '1', title: 'Отдых в Сочи', description: 'Поездка на море'),
+      Trip(id: '2', title: 'Поход в горы', description: 'Восхождение на Эльбрус'),
+    ];
+  }
 
   int _currentIndex = 0;
-
-  // Этот метод будет вызываться из других экранов через Navigator
-  void addNewTrip(Trip newTrip) {
-    // Проверяем, mounted чтобы избежать ошибки setState после dispose
-    if (mounted) {
-      setState(() {
-        trips.add(newTrip);
-      });
-    }
-  }
 
   void _deleteTrip(String tripId) {
     setState(() {
@@ -45,7 +48,7 @@ class _TripListScreenState extends State<TripListScreen> {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
@@ -79,13 +82,7 @@ class _TripListScreenState extends State<TripListScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => NewTripScreen(
-                onTripAdded: (newTrip) {
-                  // Создаем новый экран TripListScreen с обновленными данными
-                  final newScreen = TripListScreen();
-                  // Вызываем метод добавления поездки на новом экране
-                  (newScreen.createState() as _TripListScreenState).addNewTrip(newTrip);
-                  return newScreen;
-                },
+                currentTrips: trips, // Передаем текущие поездки
               ),
             ),
           );
@@ -142,6 +139,7 @@ class _TripListScreenState extends State<TripListScreen> {
           const SizedBox(height: 20),
           Text('Всего поездок: ${trips.length}'),
           const SizedBox(height: 10),
+          // В методе _buildStatistics замените:
           ElevatedButton.icon(
             icon: const Icon(Icons.map),
             label: const Text('Посмотреть на карте'),

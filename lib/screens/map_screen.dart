@@ -6,30 +6,44 @@ import 'trip_list_screen.dart';
 
 class MapScreen extends StatefulWidget {
   final List<Trip> trips;
+  final List<MapPoint> initialPoints;
 
-  const MapScreen({super.key, required this.trips});
+  const MapScreen({
+    super.key,
+    required this.trips,
+    List<MapPoint>? initialPoints,
+  }) : initialPoints = initialPoints ?? const [];
 
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
-  List<MapPoint> mapPoints = [
-    MapPoint(
-      id: '1',
-      title: 'Сочи',
-      description: 'Курортный город',
-      latitude: 43.5855,
-      longitude: 39.7231,
-    ),
-    MapPoint(
-      id: '2',
-      title: 'Эльбрус',
-      description: 'Горная вершина',
-      latitude: 43.3550,
-      longitude: 42.4392,
-    ),
-  ];
+  late List<MapPoint> mapPoints;
+
+  @override
+  void initState() {
+    super.initState();
+    // Инициализируем точки из initialPoints или начальными данными
+    mapPoints = widget.initialPoints.isNotEmpty
+        ? List.from(widget.initialPoints)
+        : [
+      MapPoint(
+        id: '1',
+        title: 'Сочи',
+        description: 'Курортный город',
+        latitude: 43.5855,
+        longitude: 39.7231,
+      ),
+      MapPoint(
+        id: '2',
+        title: 'Эльбрус',
+        description: 'Горная вершина',
+        latitude: 43.3550,
+        longitude: 42.4392,
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +77,17 @@ class _MapScreenState extends State<MapScreen> {
                     const SizedBox(height: 20),
                     const Text('Карта с отметками о поездках'),
                     Text('Всего точек: ${mapPoints.length}'),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.travel_explore),
+                      label: const Text('Мои поездки'),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => TripListScreen()),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -70,38 +95,82 @@ class _MapScreenState extends State<MapScreen> {
           ),
           Expanded(
             flex: 1,
-            child: ListView.builder(
-              itemCount: mapPoints.length,
-              itemBuilder: (context, index) {
-                final point = mapPoints[index];
-                return ListTile(
-                  leading: const Icon(Icons.location_on, color: Colors.red),
-                  title: Text(point.title),
-                  subtitle: Text('${point.latitude}, ${point.longitude}'),
-                  trailing: Text(point.description),
-                );
-              },
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Точки на карте:',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      TextButton.icon(
+                        icon: const Icon(Icons.list_alt, size: 16),
+                        label: const Text('К поездкам'),
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => TripListScreen()),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: mapPoints.length,
+                    itemBuilder: (context, index) {
+                      final point = mapPoints[index];
+                      return ListTile(
+                        leading: const Icon(Icons.location_on, color: Colors.red),
+                        title: Text(point.title),
+                        subtitle: Text('${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)}'),
+                        trailing: Text(
+                            point.description.length > 15
+                                ? '${point.description.substring(0, 15)}...'
+                                : point.description
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add_location),
-        onPressed: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddMapPointScreen(
-                onPointAdded: (newPoint) {
-                  // Создаем новый экран карты с добавленной точкой
-                  final newMapScreen = MapScreen(trips: widget.trips);
-                  (newMapScreen.createState() as _MapScreenState).mapPoints.add(newPoint);
-                  return newMapScreen;
-                },
-              ),
-            ),
-          );
-        },
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'list_btn',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => TripListScreen()),
+              );
+            },
+            child: const Icon(Icons.view_list),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            heroTag: 'add_point_btn',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddMapPointScreen(
+                    currentPoints: mapPoints, // Передаем текущие точки
+                  ),
+                ),
+              );
+            },
+            child: const Icon(Icons.add_location),
+          ),
+        ],
       ),
     );
   }

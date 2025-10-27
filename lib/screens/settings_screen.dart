@@ -17,7 +17,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Настройки'),
-        // Возвращаем кнопку назад
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

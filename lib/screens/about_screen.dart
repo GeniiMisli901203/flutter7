@@ -8,6 +8,12 @@ class AboutScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('О приложении'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: const Padding(
         padding: EdgeInsets.all(16.0),
@@ -40,7 +46,7 @@ class AboutScreen extends StatelessWidget {
             Text('• Добавление точек интереса'),
             Spacer(),
             Center(
-              child: Text('© 2024 Travel Notes App'),
+              child: Text('© 2025 Travel Notes App'),
             ),
           ],
         ),

@@ -3,9 +3,9 @@ import '../models/trip.dart';
 import 'trip_list_screen.dart';
 
 class NewTripScreen extends StatefulWidget {
-  final Function(Trip) onTripAdded;
+  final List<Trip> currentTrips;
 
-  const NewTripScreen({super.key, required this.onTripAdded});
+  const NewTripScreen({super.key, required this.currentTrips});
 
   @override
   State<NewTripScreen> createState() => _NewTripScreenState();
@@ -27,9 +27,12 @@ class _NewTripScreenState extends State<NewTripScreen> {
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () {
+              // Возвращаемся к списку с текущими поездками (без изменений)
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => TripListScreen()),
+                MaterialPageRoute(
+                  builder: (context) => TripListScreen(initialTrips: widget.currentTrips),
+                ),
               );
             },
           ),
@@ -146,13 +149,15 @@ class _NewTripScreenState extends State<NewTripScreen> {
         date: DateTime.now(),
       );
 
-      // Создаем новый экран со списком с добавленной поездкой
-      final newListScreen = widget.onTripAdded(newTrip);
+      // Создаем новый список поездок с добавленной поездкой
+      final updatedTrips = [...widget.currentTrips, newTrip];
 
-      // Горизонтальная навигация на новый экран
+      // Возвращаемся к списку с ОБНОВЛЕННЫМИ данными
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => newListScreen),
+        MaterialPageRoute(
+          builder: (context) => TripListScreen(initialTrips: updatedTrips),
+        ),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

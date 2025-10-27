@@ -3,9 +3,9 @@ import '../models/map_point.dart';
 import 'map_screen.dart';
 
 class AddMapPointScreen extends StatefulWidget {
-  final Function(MapPoint) onPointAdded;
+  final List<MapPoint> currentPoints;
 
-  const AddMapPointScreen({super.key, required this.onPointAdded});
+  const AddMapPointScreen({super.key, required this.currentPoints});
 
   @override
   State<AddMapPointScreen> createState() => _AddMapPointScreenState();
@@ -27,9 +27,15 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () {
+              // Возвращаемся к карте с текущими точками (без изменений)
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => MapScreen(trips: [])),
+                MaterialPageRoute(
+                  builder: (context) => MapScreen(
+                      trips: [],
+                      initialPoints: widget.currentPoints
+                  ),
+                ),
               );
             },
           ),
@@ -87,9 +93,15 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
+                      // Отмена - возвращаемся с текущими точками
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => MapScreen(trips: [])),
+                        MaterialPageRoute(
+                          builder: (context) => MapScreen(
+                              trips: [],
+                              initialPoints: widget.currentPoints
+                          ),
+                        ),
                       );
                     },
                     child: const Text('Отмена'),
@@ -116,20 +128,37 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
         _latitudeController.text.isNotEmpty &&
         _longitudeController.text.isNotEmpty) {
 
+      // Проверяем, что координаты - валидные числа
+      final latitude = double.tryParse(_latitudeController.text);
+      final longitude = double.tryParse(_longitudeController.text);
+
+      if (latitude == null || longitude == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Введите корректные координаты')),
+        );
+        return;
+      }
+
       final newPoint = MapPoint(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text,
         description: _descriptionController.text,
-        latitude: double.parse(_latitudeController.text),
-        longitude: double.parse(_longitudeController.text),
+        latitude: latitude,
+        longitude: longitude,
       );
 
-      // Создаем новый экран карты с добавленной точкой
-      final newMapScreen = widget.onPointAdded(newPoint);
+      // Создаем новый список точек с добавленной точкой
+      final updatedPoints = [...widget.currentPoints, newPoint];
 
+      // Возвращаемся к карте с ОБНОВЛЕННЫМИ данными
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => newMapScreen),
+        MaterialPageRoute(
+          builder: (context) => MapScreen(
+              trips: [],
+              initialPoints: updatedPoints
+          ),
+        ),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
