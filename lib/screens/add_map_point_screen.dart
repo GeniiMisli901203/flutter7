@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/map_point.dart';
-import 'trip_list_screen.dart';
+import 'map_screen.dart';
 
 class AddMapPointScreen extends StatefulWidget {
   final Function(MapPoint) onPointAdded;
@@ -12,7 +12,6 @@ class AddMapPointScreen extends StatefulWidget {
 }
 
 class _AddMapPointScreenState extends State<AddMapPointScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _latitudeController = TextEditingController(text: '55.7558');
@@ -23,17 +22,14 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Добавить точку на карту'),
-        // Убираем кнопку назад - только горизонтальная навигация
         automaticallyImplyLeading: false,
         actions: [
-          // Кнопка отмены - горизонтальная навигация на главный экран
           IconButton(
             icon: const Icon(Icons.close),
-            tooltip: 'Отмена',
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const TripListScreen()),
+                MaterialPageRoute(builder: (context) => MapScreen(trips: [])),
               );
             },
           ),
@@ -41,110 +37,85 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Название точки',
-                  border: OutlineInputBorder(),
+        child: ListView(
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Название точки',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Описание',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _latitudeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Широта',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Введите название';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Описание',
-                  border: OutlineInputBorder(),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextField(
+                    controller: _longitudeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Долгота',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
                 ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Введите описание';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _latitudeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Широта',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
+              ],
+            ),
+            const SizedBox(height: 30),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => MapScreen(trips: [])),
+                      );
+                    },
+                    child: const Text('Отмена'),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _longitudeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Долгота',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _addPoint,
+                    child: const Text('Добавить точку'),
                   ),
-                ],
-              ),
-              const SizedBox(height: 30),
-              Row(
-                children: [
-                  // Кнопка отмены - горизонтальная навигация
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const TripListScreen()),
-                        );
-                      },
-                      child: const Text('Отмена'),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // Кнопка добавления - горизонтальная навигация
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _addPoint,
-                      child: const Text('Добавить точку'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Дополнительная кнопка перехода к списку поездок
-              TextButton.icon(
-                icon: const Icon(Icons.list),
-                label: const Text('Вернуться к списку поездок'),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const TripListScreen()),
-                  );
-                },
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
   void _addPoint() {
-    if (_formKey.currentState!.validate()) {
+    if (_titleController.text.isNotEmpty &&
+        _descriptionController.text.isNotEmpty &&
+        _latitudeController.text.isNotEmpty &&
+        _longitudeController.text.isNotEmpty) {
+
       final newPoint = MapPoint(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text,
@@ -153,12 +124,20 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
         longitude: double.parse(_longitudeController.text),
       );
 
-      widget.onPointAdded(newPoint);
+      // Создаем новый экран карты с добавленной точкой
+      final newMapScreen = widget.onPointAdded(newPoint);
 
-      // Горизонтальная навигация - замена экрана на главный
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const TripListScreen()),
+        MaterialPageRoute(builder: (context) => newMapScreen),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Точка "${_titleController.text}" добавлена!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Заполните все поля')),
       );
     }
   }

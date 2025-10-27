@@ -17,6 +17,12 @@ class TripDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(trip.title),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Возврат назад
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

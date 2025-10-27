@@ -91,7 +91,6 @@ class _EditTripScreenState extends State<EditTripScreen> {
         title: _titleController.text,
         description: _descriptionController.text,
       );
-
       widget.onTripUpdated(updatedTrip);
       Navigator.pop(context); // Вертикальная навигация - возврат назад
     }

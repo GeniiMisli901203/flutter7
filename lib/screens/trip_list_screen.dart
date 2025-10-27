@@ -6,7 +6,7 @@ import 'map_screen.dart';
 import 'settings_screen.dart';
 
 class TripListScreen extends StatefulWidget {
-  const TripListScreen({super.key}); // Оставляем const здесь
+  const TripListScreen({super.key});
 
   @override
   State<TripListScreen> createState() => _TripListScreenState();
@@ -20,10 +20,14 @@ class _TripListScreenState extends State<TripListScreen> {
 
   int _currentIndex = 0;
 
-  void _addTrip(Trip newTrip) {
-    setState(() {
-      trips.add(newTrip);
-    });
+  // Этот метод будет вызываться из других экранов через Navigator
+  void addNewTrip(Trip newTrip) {
+    // Проверяем, mounted чтобы избежать ошибки setState после dispose
+    if (mounted) {
+      setState(() {
+        trips.add(newTrip);
+      });
+    }
   }
 
   void _deleteTrip(String tripId) {
@@ -38,11 +42,10 @@ class _TripListScreenState extends State<TripListScreen> {
       appBar: AppBar(
         title: const Text('Мои поездки'),
         actions: [
-          // В trip_list_screen.dart в AppBar actions
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              Navigator.push( // Меняем на вертикальную навигацию
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
@@ -75,7 +78,15 @@ class _TripListScreenState extends State<TripListScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => NewTripScreen(onTripAdded: _addTrip), // Убираем const
+              builder: (context) => NewTripScreen(
+                onTripAdded: (newTrip) {
+                  // Создаем новый экран TripListScreen с обновленными данными
+                  final newScreen = TripListScreen();
+                  // Вызываем метод добавления поездки на новом экране
+                  (newScreen.createState() as _TripListScreenState).addNewTrip(newTrip);
+                  return newScreen;
+                },
+              ),
             ),
           );
         },
@@ -138,7 +149,7 @@ class _TripListScreenState extends State<TripListScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MapScreen(trips: trips), // Убираем const
+                  builder: (context) => MapScreen(trips: trips),
                 ),
               );
             },
