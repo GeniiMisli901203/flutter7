@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -10,9 +11,8 @@ class AboutScreen extends StatelessWidget {
         title: const Text('О приложении'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          // Вертикальная навигация - возврат назад
+          onPressed: () => context.pop(),
         ),
       ),
       body: const Padding(

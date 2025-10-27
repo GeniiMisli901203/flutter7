@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/trip.dart';
-import 'trip_detail_screen.dart';
-import 'new_trip_screen.dart';
-import 'map_screen.dart';
-import 'settings_screen.dart';
 
 class TripListScreen extends StatefulWidget {
-  final List<Trip> initialTrips;
+  final List<Trip>? initialTrips;
 
-  // Основной конструктор
-  const TripListScreen({super.key, List<Trip>? initialTrips})
-      : initialTrips = initialTrips ?? const [];
+  const TripListScreen({super.key, this.initialTrips});
 
   @override
   State<TripListScreen> createState() => _TripListScreenState();
@@ -22,13 +17,14 @@ class _TripListScreenState extends State<TripListScreen> {
   @override
   void initState() {
     super.initState();
-    // Инициализируем trips из initialTrips или начальными данными
-    trips = widget.initialTrips.isNotEmpty
-        ? List.from(widget.initialTrips)
-        : [
-      Trip(id: '1', title: 'Отдых в Сочи', description: 'Поездка на море'),
-      Trip(id: '2', title: 'Поход в горы', description: 'Восхождение на Эльбрус'),
-    ];
+    if (widget.initialTrips != null) {
+      trips = widget.initialTrips!;
+    } else {
+      trips = [
+        Trip(id: '1', title: 'Отдых в Сочи', description: 'Поездка на море'),
+        Trip(id: '2', title: 'Поход в горы', description: 'Восхождение на Эльбрус'),
+      ];
+    }
   }
 
   int _currentIndex = 0;
@@ -36,6 +32,15 @@ class _TripListScreenState extends State<TripListScreen> {
   void _deleteTrip(String tripId) {
     setState(() {
       trips.removeWhere((trip) => trip.id == tripId);
+    });
+  }
+
+  void _updateTrip(Trip updatedTrip) {
+    setState(() {
+      final index = trips.indexWhere((trip) => trip.id == updatedTrip.id);
+      if (index != -1) {
+        trips[index] = updatedTrip;
+      }
     });
   }
 
@@ -47,12 +52,7 @@ class _TripListScreenState extends State<TripListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
+            onPressed: () => context.pushNamed('settings'),
           ),
         ],
       ),
@@ -77,16 +77,7 @@ class _TripListScreenState extends State<TripListScreen> {
       ),
       floatingActionButton: _currentIndex == 0 ? FloatingActionButton(
         child: const Icon(Icons.add),
-        onPressed: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NewTripScreen(
-                currentTrips: trips, // Передаем текущие поездки
-              ),
-            ),
-          );
-        },
+        onPressed: () => context.goNamed('new_trip', extra: trips),
       ) : null,
     );
   }
@@ -101,28 +92,22 @@ class _TripListScreenState extends State<TripListScreen> {
           background: Container(color: Colors.red),
           onDismissed: (direction) => _deleteTrip(trip.id),
           child: Card(
-            child: ListTile(
-              title: Text(trip.title),
-              subtitle: Text(trip.description),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TripDetailScreen(
-                      trip: trip,
-                      onTripUpdated: (updatedTrip) {
-                        setState(() {
-                          final index = trips.indexWhere((t) => t.id == trip.id);
-                          if (index != -1) {
-                            trips[index] = updatedTrip;
-                          }
-                        });
-                      },
-                    ),
-                  ),
+            child: InkWell(
+              onTap: () async {
+                print('Нажата поездка: ${trip.title}');
+                final result = await context.pushNamed<Trip>(
+                  'trip_detail',
+                  extra: trip,
                 );
+                if (result != null) {
+                  _updateTrip(result);
+                }
               },
+              child: ListTile(
+                title: Text(trip.title),
+                subtitle: Text(trip.description),
+                trailing: const Icon(Icons.arrow_forward_ios),
+              ),
             ),
           ),
         );
@@ -139,18 +124,10 @@ class _TripListScreenState extends State<TripListScreen> {
           const SizedBox(height: 20),
           Text('Всего поездок: ${trips.length}'),
           const SizedBox(height: 10),
-          // В методе _buildStatistics замените:
           ElevatedButton.icon(
             icon: const Icon(Icons.map),
             label: const Text('Посмотреть на карте'),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MapScreen(trips: trips),
-                ),
-              );
-            },
+            onPressed: () => context.goNamed('map', extra: trips),
           ),
         ],
       ),

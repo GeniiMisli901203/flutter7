@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/trip.dart';
 import 'edit_trip_screen.dart';
 
@@ -19,9 +20,8 @@ class TripDetailScreen extends StatelessWidget {
         title: Text(trip.title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Возврат назад
-          },
+          // Вертикальная навигация назад
+          onPressed: () => context.pop(),
         ),
       ),
       body: Padding(
@@ -50,17 +50,21 @@ class TripDetailScreen extends StatelessWidget {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.edit),
                   label: const Text('Редактировать поездку'),
-                  // Вертикальная навигация: Переход к редактированию
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditTripScreen(
-                          trip: trip,
-                          onTripUpdated: onTripUpdated!,
-                        ),
-                      ),
+                  // Вертикальная навигация через маршрут
+                  // В trip_detail_screen.dart
+                  onPressed: () async {
+                    final result = await context.pushNamed<Trip>(
+                      'edit_trip',
+                      extra: {
+                        'trip': trip,
+                        'onTripUpdated': onTripUpdated!,
+                      },
                     );
+
+                    // Если вернулись с обновленными данными, обновляем экран
+                    if (result != null && onTripUpdated != null) {
+                      onTripUpdated!(result);
+                    }
                   },
                 ),
               ),

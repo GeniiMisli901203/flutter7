@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/map_point.dart';
-import 'map_screen.dart';
 
 class AddMapPointScreen extends StatefulWidget {
   final List<MapPoint> currentPoints;
@@ -26,18 +26,8 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () {
-              // Возвращаемся к карте с текущими точками (без изменений)
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MapScreen(
-                      trips: [],
-                      initialPoints: widget.currentPoints
-                  ),
-                ),
-              );
-            },
+            // Горизонтальная навигация - возврат на карту
+            onPressed: () => context.goNamed('map', extra: widget.currentPoints),
           ),
         ],
       ),
@@ -93,16 +83,8 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      // Отмена - возвращаемся с текущими точками
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MapScreen(
-                              trips: [],
-                              initialPoints: widget.currentPoints
-                          ),
-                        ),
-                      );
+                      // Отмена - горизонтальная навигация на карту
+                      context.goNamed('map', extra: widget.currentPoints);
                     },
                     child: const Text('Отмена'),
                   ),
@@ -128,7 +110,6 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
         _latitudeController.text.isNotEmpty &&
         _longitudeController.text.isNotEmpty) {
 
-      // Проверяем, что координаты - валидные числа
       final latitude = double.tryParse(_latitudeController.text);
       final longitude = double.tryParse(_longitudeController.text);
 
@@ -147,19 +128,10 @@ class _AddMapPointScreenState extends State<AddMapPointScreen> {
         longitude: longitude,
       );
 
-      // Создаем новый список точек с добавленной точкой
       final updatedPoints = [...widget.currentPoints, newPoint];
 
-      // Возвращаемся к карте с ОБНОВЛЕННЫМИ данными
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MapScreen(
-              trips: [],
-              initialPoints: updatedPoints
-          ),
-        ),
-      );
+      // Горизонтальная навигация на карту с обновленными данными
+      context.goNamed('map', extra: updatedPoints);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Точка "${_titleController.text}" добавлена!')),

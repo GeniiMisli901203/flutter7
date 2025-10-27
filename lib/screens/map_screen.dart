@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/trip.dart';
 import '../models/map_point.dart';
-import 'add_map_point_screen.dart';
-import 'trip_list_screen.dart';
 
 class MapScreen extends StatefulWidget {
   final List<Trip> trips;
-  final List<MapPoint> initialPoints;
+  final List<MapPoint>? initialPoints;
 
   const MapScreen({
     super.key,
     required this.trips,
-    List<MapPoint>? initialPoints,
-  }) : initialPoints = initialPoints ?? const [];
+    this.initialPoints,
+  });
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -24,10 +23,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    // Инициализируем точки из initialPoints или начальными данными
-    mapPoints = widget.initialPoints.isNotEmpty
-        ? List.from(widget.initialPoints)
-        : [
+    mapPoints = widget.initialPoints ?? [
       MapPoint(
         id: '1',
         title: 'Сочи',
@@ -54,12 +50,8 @@ class _MapScreenState extends State<MapScreen> {
           IconButton(
             icon: const Icon(Icons.list),
             tooltip: 'Список поездок',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => TripListScreen()),
-              );
-            },
+            // Горизонтальная навигация через маршрут
+            onPressed: () => context.go('/'),
           ),
         ],
       ),
@@ -77,17 +69,6 @@ class _MapScreenState extends State<MapScreen> {
                     const SizedBox(height: 20),
                     const Text('Карта с отметками о поездках'),
                     Text('Всего точек: ${mapPoints.length}'),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.travel_explore),
-                      label: const Text('Мои поездки'),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => TripListScreen()),
-                        );
-                      },
-                    ),
                   ],
                 ),
               ),
@@ -95,82 +76,29 @@ class _MapScreenState extends State<MapScreen> {
           ),
           Expanded(
             flex: 1,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Точки на карте:',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      TextButton.icon(
-                        icon: const Icon(Icons.list_alt, size: 16),
-                        label: const Text('К поездкам'),
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => TripListScreen()),
-                          );
-                        },
-                      ),
-                    ],
+            child: ListView.builder(
+              itemCount: mapPoints.length,
+              itemBuilder: (context, index) {
+                final point = mapPoints[index];
+                return ListTile(
+                  leading: const Icon(Icons.location_on, color: Colors.red),
+                  title: Text(point.title),
+                  subtitle: Text('${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)}'),
+                  trailing: Text(
+                      point.description.length > 15
+                          ? '${point.description.substring(0, 15)}...'
+                          : point.description
                   ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: mapPoints.length,
-                    itemBuilder: (context, index) {
-                      final point = mapPoints[index];
-                      return ListTile(
-                        leading: const Icon(Icons.location_on, color: Colors.red),
-                        title: Text(point.title),
-                        subtitle: Text('${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)}'),
-                        trailing: Text(
-                            point.description.length > 15
-                                ? '${point.description.substring(0, 15)}...'
-                                : point.description
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         ],
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton.small(
-            heroTag: 'list_btn',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => TripListScreen()),
-              );
-            },
-            child: const Icon(Icons.view_list),
-          ),
-          const SizedBox(height: 10),
-          FloatingActionButton(
-            heroTag: 'add_point_btn',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AddMapPointScreen(
-                    currentPoints: mapPoints, // Передаем текущие точки
-                  ),
-                ),
-              );
-            },
-            child: const Icon(Icons.add_location),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add_location),
+        // Горизонтальная навигация через маршрут
+        onPressed: () => context.goNamed('add_point', extra: mapPoints),
       ),
     );
   }

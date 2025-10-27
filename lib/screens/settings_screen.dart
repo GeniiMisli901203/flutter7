@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'about_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,9 +19,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Настройки'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Вертикальная навигация - возврат назад
-          },
+          // ВЕРТИКАЛЬНАЯ навигация - возврат назад
+          onPressed: () => context.pop(),
         ),
       ),
       body: ListView(
@@ -54,13 +53,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('О приложении'),
-            // Вертикальная навигация: Переход к информации о приложении
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AboutScreen()),
-              );
-            },
+            // Вертикальная навигация
+            onTap: () => context.pushNamed('about'),
           ),
         ],
       ),

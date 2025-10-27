@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/trip.dart';
-import 'trip_list_screen.dart';
 
 class NewTripScreen extends StatefulWidget {
   final List<Trip> currentTrips;
@@ -26,19 +26,13 @@ class _NewTripScreenState extends State<NewTripScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () {
-              // Возвращаемся к списку с текущими поездками (без изменений)
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TripListScreen(initialTrips: widget.currentTrips),
-                ),
-              );
-            },
+            // Горизонтальная навигация через маршрут
+            onPressed: () => context.go('/'),
           ),
         ],
       ),
       body: Stepper(
+        // ... остальной код без изменений ...
         currentStep: _currentStep,
         onStepContinue: () {
           if (_currentStep == 0) {
@@ -149,16 +143,10 @@ class _NewTripScreenState extends State<NewTripScreen> {
         date: DateTime.now(),
       );
 
-      // Создаем новый список поездок с добавленной поездкой
       final updatedTrips = [...widget.currentTrips, newTrip];
 
-      // Возвращаемся к списку с ОБНОВЛЕННЫМИ данными
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TripListScreen(initialTrips: updatedTrips),
-        ),
-      );
+      // Горизонтальная навигация через маршрут с обновленными данными
+      context.go('/', extra: updatedTrips);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Поездка "${_titleController.text}" добавлена!')),

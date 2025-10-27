@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/trip.dart';
 
 class EditTripScreen extends StatefulWidget {
@@ -32,6 +33,12 @@ class _EditTripScreenState extends State<EditTripScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Редактировать поездку'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.pop(); // Возврат без сохранения
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
@@ -92,7 +99,7 @@ class _EditTripScreenState extends State<EditTripScreen> {
         description: _descriptionController.text,
       );
       widget.onTripUpdated(updatedTrip);
-      Navigator.pop(context); // Вертикальная навигация - возврат назад
+      context.pop(updatedTrip);
     }
   }
 
